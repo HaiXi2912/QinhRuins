@@ -23,6 +23,8 @@ object AnchorPlacer {
         val height = structureHeight(template)
         if (height > 0 && (y + height > world.maxHeight || y < world.minHeight)) return false
 
+        gen.fit?.let { fit -> if (!TerrainFit.check(world, bx, y, bz, template, fit)) return false }
+
         val groundBlock = world.getBlockAt(bx, y - 1, bz)
         if (gen.whitelistGround.isNotEmpty() || gen.blacklistGround.isNotEmpty()) {
             val ground = groundBlock.type.name
@@ -199,6 +201,7 @@ object AnchorPlacer {
         val mode = gen.yMode.trim().lowercase()
         val hm = resolveHeightmap(gen.heightmap)
         val base = when {
+            mode.startsWith("[") && mode.endsWith("]") -> parseAbsoluteY(mode, random) ?: return null
             mode.startsWith("+") || mode.startsWith("-") -> parseRelativeY(world, x, z, hm, mode, random) ?: return null
             mode.toIntOrNull() != null -> mode.toInt()
             else -> when (mode) {
@@ -227,6 +230,14 @@ object AnchorPlacer {
         return base + gen.yOffset
     }
 
+    private fun parseAbsoluteY(mode: String, random: Random): Int? {
+        val parts = mode.substring(1, mode.length - 1).split(";").mapNotNull { it.trim().toIntOrNull() }
+        if (parts.size < 2) return null
+        val lo = minOf(parts[0], parts[1])
+        val hi = maxOf(parts[0], parts[1])
+        return lo + random.nextInt(hi - lo + 1)
+    }
+
     private fun parseRelativeY(world: World, x: Int, z: Int, hm: HeightMap?, mode: String, random: Random): Int? {
         val sign = if (mode.startsWith("-")) -1 else 1
         val rest = mode.substring(1).trim()
@@ -246,6 +257,9 @@ object AnchorPlacer {
         val mode = raw.trim().lowercase()
         if (mode.toIntOrNull() != null) return true
         if (mode in NAMED_Y_MODES) return true
+        if (mode.startsWith("[") && mode.endsWith("]")) {
+            return mode.substring(1, mode.length - 1).split(";").mapNotNull { it.trim().toIntOrNull() }.size >= 2
+        }
         if (mode.startsWith("+") || mode.startsWith("-")) {
             val rest = mode.substring(1).trim()
             if (rest.toIntOrNull() != null) return true

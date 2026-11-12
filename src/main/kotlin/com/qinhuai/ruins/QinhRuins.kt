@@ -35,8 +35,10 @@ import com.qinhuai.ruins.loot.LootTableRegistry
 import com.qinhuai.ruins.loot.RealmLoot
 import com.qinhuai.ruins.loot.SlotListener
 import com.qinhuai.ruins.loot.SlotMachine
+import com.qinhuai.ruins.loot.VanillaChestListener
 import com.qinhuai.ruins.loot.VesselListener
 import com.qinhuai.ruins.loot.VesselService
+import com.qinhuai.ruins.loot.WeeklyLimitService
 import com.qinhuai.ruins.placeholder.RuinPlaceholders
 import com.qinhuai.ruins.realm.KeystoneListener
 import com.qinhuai.ruins.realm.RealmAffixListener
@@ -127,6 +129,7 @@ class QinhRuins : JavaPlugin() {
         if (!File(dataFolder, "loottables/realm.yml").exists()) saveResource("loottables/realm.yml", false)
         if (!File(dataFolder, "loottables/vault.yml").exists()) saveResource("loottables/vault.yml", false)
         if (!File(dataFolder, "loottables/default.yml").exists()) saveResource("loottables/default.yml", false)
+        if (!File(dataFolder, "loottables/compensation.yml").exists()) saveResource("loottables/compensation.yml", false)
         LootTableRegistry.load(File(dataFolder, "loottables"))
         if (!File(dataFolder, "affixes.yml").exists()) saveResource("affixes.yml", false)
         val affixCount = AffixRegistry.load(File(dataFolder, "affixes.yml"))
@@ -145,6 +148,7 @@ class QinhRuins : JavaPlugin() {
         VesselStore.init(File(dataFolder, "vessels.yml"))
         com.qinhuai.ruins.data.SharedVesselStore.init(File(dataFolder, "shared_vessels.yml"))
         VesselService.configure(config)
+        WeeklyLimitService.configure(config, dataFolder)
         SpinStore.init(File(dataFolder, "spins.yml"))
         SnapshotStore.init(File(dataFolder, "snapshots"), config.getBoolean("cleanup.snapshot-restore", true), config.getLong("cleanup.max-snapshot-volume", 500_000L))
         ChestRegistry.rebuild(AnchorManager.all())
@@ -159,6 +163,7 @@ class QinhRuins : JavaPlugin() {
         server.pluginManager.registerEvents(ChunkHook, this)
         server.pluginManager.registerEvents(SessionListener, this)
         server.pluginManager.registerEvents(ChestListener, this)
+        server.pluginManager.registerEvents(VanillaChestListener, this)
         server.pluginManager.registerEvents(VesselListener, this)
         server.pluginManager.registerEvents(SlotListener, this)
         server.pluginManager.registerEvents(KillListener, this)

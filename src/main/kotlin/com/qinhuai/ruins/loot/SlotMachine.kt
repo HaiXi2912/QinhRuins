@@ -77,6 +77,10 @@ object SlotMachine {
             return
         }
         val reward = LootService.pickOne(player, pool, true) ?: return
+        if (!WeeklyLimitService.tryConsume(player, WeeklyLimitService.SCOPE_SLOT)) {
+            WeeklyLimitService.deny(player, WeeklyLimitService.SCOPE_SLOT, "slot|${holder.anchorId}")
+            return
+        }
         SpinStore.consume(player.uniqueId, holder.anchorId)
         holder.spinning = true
         val samples = pool.mapNotNull { LootService.build(it, player, false) }.ifEmpty { listOf(reward) }

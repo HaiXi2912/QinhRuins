@@ -5,6 +5,15 @@ data class SpawnRegion(val minX: Int, val minZ: Int, val maxX: Int, val maxZ: In
     fun allows(x: Int, z: Int): Boolean = contains(x, z) != exclude
 }
 
+data class FitRule(
+    val mode: String = "shell",
+    val minScore: Double = 0.0,
+    val scanRadius: Int = 16,
+    val requireBlocks: List<String> = emptyList(),
+    val minBlockCount: Int = 1,
+    val forbidBlocks: List<String> = emptyList(),
+)
+
 data class GenerationRule(
     val enabled: Boolean,
     val worlds: List<String>,
@@ -31,6 +40,7 @@ data class GenerationRule(
     val spawnInLava: Boolean = false,
     val spawnInVoid: Boolean = true,
     val spawnRegion: SpawnRegion? = null,
+    val fit: FitRule? = null,
 )
 
 data class GuideItemConfig(

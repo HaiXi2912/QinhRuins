@@ -1,68 +1,181 @@
-<p align="center"><img src="minecraft_title.png" alt="QinhRuins" width="640"></p>
+# QinhRuins 1.1.0-mod.1 更新日志
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Java-25+-orange" alt="Java 25+">
-  <img src="https://img.shields.io/badge/Paper%20%7C%20Purpur%20%7C%20Spigot-1.21.11+-blue" alt="MC 1.21.11+">
-  <img src="https://img.shields.io/badge/Languages-7-green" alt="7 languages">
-  <img src="https://img.shields.io/badge/Roguelike-Realm%20Engine-red" alt="Realm engine">
-</p>
+> 本仓库是基于上游 [JIULIVE/QinhRuins](https://github.com/JIULIVE/QinhRuins) `bfd96e5`（v1.1.0）的修改版。
+> 只保留构建所需内容（`pom.xml`、`src/`、`.gitignore`），其余文档与图片已移除。
 
-<p align="center"><b>A procedural Roguelike ruin engine that grows living ruins right inside your world — no instances, no countdowns.</b></p>
+- 版本：`1.1.0-mod.1`
+- 日期：2026-11-12
+- 基线：`bfd96e51253e7bc9b2aab452757bdaad45104817`
 
 ---
 
-**QinhRuins (QR)** makes structures **appear naturally** in your world. As players explore, they stumble onto an ancient tower, a sunken tomb, a floating sky island — walk close: mobs activate, mechanisms run, chests roll loot per-player. Clear it, and slot in a **Keystone** to inject affixes and turn it into a tiered **Realm endgame**.
+## 新增
 
-QR is **not a dungeon plugin**. It **does not pull players into a separate world and does not run a countdown**. Ruins live in your main world, are part of it, and fade over time after clearing to free a slot for a new one — a **living, breathing world**.
+### 1. 地形适配检查（`generation.fit`）
 
-> Built on **QinhCoreLib** (hard dependency). Optional plugins (MythicMobs, QinhClass / MMOCore, item plugins, economy, Citizens…) are auto-detected — missing ones degrade gracefully, no startup errors.
+放置遗迹前先对候选位置采样打分，不达标就重试或放弃，避免遗迹悬空、埋死在石头里。
 
-## ✨ Core Features
-
-- 🌱 **Procedural natural generation** — weighted-draw spawning bounded by density / spacing / flatness / biome / dimension filters.
-- 🧠 **Generation Director** — one scheduler runs weighted competition, living-world refresh, and post-clear fade & regen.
-- 🏔️ **Terrain-fusion placement** — mask pasting, foundation fill + edge blending, marker blocks, frame-spread to avoid lag.
-- 📐 **Blueprint gameplay layer** — spawn points, staged kill objectives, unlock chests, ruin cores, programmable mechanisms.
-- ⚙️ **Programmable mechanisms** — 6 trigger types × 12 actions.
-- 🗡️ **Final Boss Gate** — kill a cumulative count of designated mobs (vanilla + MythicMobs) to unlock and spawn the final boss.
-- 🔑 **Keystone Realm endgame** — inject tier + affixes into a cleared ruin; reroll gambling, purification rewards, keystone ladder.
-- 🎲 **Affix system** — five categories under a danger budget, mutually-exclusive groups, command / JS customization.
-- 💎 **Loot system** — per-player or shared container loot, unlock chests, purification slot-machine, growth scaling, vanilla loot-table stacking.
-- 🧭 **Guides & Codex** — guide compass to the nearest same-kind ruin, discovery codex.
-- 🧩 **Sub-structure variants & tile assembly** — weighted variant slots + Tile Palette procedural assembly.
-- 🖱️ **In-game visual editor** — box-select, mark, wire, save — no YAML.
-- 🔌 **Stable API + events + scripting** — `QinhRuinsAPI`, lifecycle events, JS affix scripts, PlaceholderAPI.
-- 🌍 **7 languages** — zh_cn / en_US / zh_tw / ru_RU / fr_FR / vi_VN / es_ES.
-
-## 🚀 Quick Start
-
-1. Install **QinhCoreLib** (hard dependency), then drop QinhRuins into `plugins/`.
-2. Start the server — requires **Paper / Purpur / Spigot 1.21.11+**, **Java 25+**.
-3. Use the in-game editor or the bundled `_example` template to create your first ruin.
-4. `/qr scatter` to pre-generate, or just let players explore and find ruins naturally.
-5. `/qr why` / `/qr gentest` if something doesn't generate.
-
-## 📚 Documentation
-
-Full Wiki & guides → **[QinhRuins Docs](https://jiulive.github.io/Qinh-docs/en/QR/)**
-
-## 🛠️ Building
-
-```bash
-mvn clean package
+```yaml
+generation:
+  fit:
+    enabled: true
+    mode: shell          # shell=外壳采样 | volume=整体采样 | signature=附近特征方块
+    min-score: 0.8       # 采样命中率低于此值判定不合格
+    scan-radius: 16      # signature 模式的球形扫描半径
+    require-blocks:      # 附近必须出现的方块（用于识别洞穴类型）
+      - minecraft:dripstone_block
+      - minecraft:pointed_dripstone
+    forbid-blocks: []
 ```
 
-The shaded jar is produced under `target/`. Requires JDK 25+.
+- 文件：`generation/TerrainFit.kt`（新增）、`core/RuinTemplate.kt`、`template/GenerationProfiles.kt`、`generation/AnchorPlacer.kt`
+- `signature` 模式用于“滴水石洞/繁茂洞穴”这类无法靠群系稳定判断的地形：扫描半径内的特征方块数量达标即视为合适。
 
-## 📦 Requirements
+### 2. 绝对 Y 区间
 
-| Item | Requirement |
-|---|---|
-| Server | Paper / Purpur / Spigot **1.21.11+** |
-| Java | **25+** |
-| Hard dependency | **QinhCoreLib** |
-| Optional soft deps | MythicMobs, QinhClass / MMOCore, item plugins, PlaceholderAPI, economy plugins, Citizens |
+`y` 现在支持绝对区间写法：
+
+```yaml
+generation:
+  y: "[0;40]"     # 结构底部在 y=0 到 y=40 之间随机
+```
+
+原有 `surface`、`underground`、`+8`、`-[3;12]` 等写法保持不变。
+
+### 3. 每周开箱限额
+
+四个独立作用域：`ruin`（遗迹箱子）、`boss`（BOSS 奖励箱）、`slot`（老虎机）、`vanilla`（原版结构箱子）。
+
+```yaml
+weekly-limit:
+  enabled: true
+  count-vanilla: false        # 原版结构箱子是否计入
+  reset-day: MONDAY
+  reset-hour: 4
+  scopes:
+    ruin:
+      per-week: 16
+      tables: []              # 留空 = 未列出的表都算遗迹箱
+      permission-bonus:
+        "qinhruins.limit.ruin.vip": 4
+        "qinhruins.limit.ruin.mvp": 8
+      temporary-bonus:
+        - start: "2026-12-24"
+          end: "2026-12-26"
+          amount: 5
+          reason: "圣诞活动"
+    boss:
+      per-week: 3
+      tables: [boss, boss_reward, boss_vault]
+      permission-bonus:
+        "qinhruins.limit.boss.vip": 2
+    slot:
+      per-week: 3
+      tables: []
+      permission-bonus:
+        "qinhruins.limit.slot.vip": 2
+    vanilla:
+      per-week: 5
+  over-limit:
+    mode: chest               # chest=开补偿箱 | reward=给物品 | deny=只提示
+    table: compensation
+    title: "&6本周次数已用完 · 安慰奖"
+    rows: 3
+    once-per-chest: true
+    message: "&e本周次数已用完，这是安慰奖"
+    commands: []
+    items: []
+```
+
+- 文件：`data/WeeklyLimitStore.kt`、`loot/WeeklyLimitService.kt`（新增）、`loot/ChestListener.kt`、`loot/VesselService.kt`、`loot/SlotMachine.kt`
+- 原版结构箱子通过 `lootTable != null` 判定，玩家自己放的箱子不计入；`count-vanilla: false` 默认关闭。
+- 占位符（需 PAPI）：`%qinhruins_weekly_used%`、`%qinhruins_weekly_limit%`、`%qinhruins_weekly_remaining%`、`%qinhruins_weekly_reset%`，以及 `boss_`、`slot_`、`vanilla_` 前缀变体。
+
+### 4. 遗迹保护系统重做
+
+| 方块 | 通关前 | 通关后 |
+|---|---|---|
+| 战利品箱 | 不可破坏，提示 | 不可破坏 |
+| 矿物 / 矿物块 / 粗矿块 | 可挖、正常掉落、不恢复 | 同左 |
+| 其他结构方块 | 不可破坏 | 按 `after-clear` |
+| 放置方块 | 禁止 | 允许 |
+| 爆炸 | 遗迹内非矿物方块不被破坏 | 同左 |
+
+```yaml
+protection:
+  enabled: true
+  chests: true
+  chest-message: true
+  after-clear: restore        # deny | restore | allow
+  restore-delay-ticks: 100
+  no-drop: true
+  ore-tags:
+    - "#minecraft:ores"
+    - "#minecraft:beacon_base_blocks"
+  ore-blocks:
+    - minecraft:raw_iron_block
+    - minecraft:raw_copper_block
+    - minecraft:raw_gold_block
+```
+
+- 文件：`combat/RuinProtectionListener.kt`
+- `restore` 模式只在该位置仍为空气时恢复，不覆盖玩家新放的方块。
+- 管理员权限 `qinhruins.admin` 不受保护限制。
+
+### 5. 生成播报可点击传送
+
+生成播报中的遗迹名可点击，直接执行 `/qr tp <id>`；悬停显示传送目标。
+
+- 文件：`generation/GenerationDirector.kt`
+- 语言键：`cmd.gen-announce-tp`、`cmd.gen-announce-tp-hover`（`lang/zh_cn`、`lang/en_US`）
 
 ---
 
-*Part of the Qinhuai plugin series.*
+## 修复
+
+- **模板 `display` 的 `&` 颜色代码不生效**：`&6遗迹名` 会原样显示 `&6`。现在解析时统一转换为 `§`。
+  - 文件：`template/TemplateRegistry.kt`
+
+## 资源
+
+- 新增 `loottables/compensation.yml`（超额补偿箱默认内容），首次启动自动释放。
+
+## 兼容性
+
+- Paper / Purpur / Spigot 1.21.x+（26.x 可运行，启动会有“未测试版本”警告，可在 `config.yml` 关闭 `compatibility.strict-version-check`）
+- Java 25、Kotlin 2.3.0、`paper-api 1.21.4`
+- 依赖 QinhCoreLib 1.3.0
+
+## 构建
+
+```bash
+mvn -B -DskipTests package
+# 产物：target/QinhRuins-1.1.0.jar
+```
+
+## 相对上游的文件变更
+
+新增：
+- `src/main/kotlin/com/qinhuai/ruins/generation/TerrainFit.kt`
+- `src/main/kotlin/com/qinhuai/ruins/data/WeeklyLimitStore.kt`
+- `src/main/kotlin/com/qinhuai/ruins/loot/WeeklyLimitService.kt`
+- `src/main/kotlin/com/qinhuai/ruins/loot/VanillaChestListener.kt`
+- `src/main/resources/loottables/compensation.yml`
+
+修改：
+- `QinhRuins.kt`
+- `combat/RuinProtectionListener.kt`
+- `core/RuinTemplate.kt`
+- `generation/AnchorPlacer.kt`
+- `generation/GenerationDirector.kt`
+- `loot/ChestListener.kt`
+- `loot/SlotMachine.kt`
+- `loot/VesselService.kt`
+- `placeholder/RuinPlaceholders.kt`
+- `template/GenerationProfiles.kt`
+- `template/TemplateRegistry.kt`
+- `resources/config.yml`
+- `resources/lang/{zh_cn,en_US}/{commands,core}.yml`
+
+移除：
+- `INTEGRATIONS.md`、`catalog.yml`、`icon-96.png`、`minecraft_title.png`（精简仓库）

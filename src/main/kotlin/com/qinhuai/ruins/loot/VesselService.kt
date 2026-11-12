@@ -48,6 +48,11 @@ object VesselService {
         val tableName = template.containerTables[block.type.name] ?: template.containerTable ?: return false
         val table = LootTableRegistry.get(tableName) ?: return false
         if (table.containers.isNotEmpty() && block.type.name !in table.containers) return false
+        val scope = WeeklyLimitService.scopeOfTable(tableName)
+        if (!WeeklyLimitService.tryConsume(player, scope)) {
+            WeeklyLimitService.deny(player, scope, "vessel|${anchor.id}|${canonicalLoc(block)}")
+            return true
+        }
         if (template.vesselMode == "shared") {
             populateShared(player, anchor.id, block, table, tableName)
             return false

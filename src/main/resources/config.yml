@@ -118,9 +118,21 @@ vessel:
   # 容器用哪张表：在遗迹模板 template.yml 的 loot.container-table 指定；
   # 表里 containers 字段声明哪些容器类型生效（如 [CHEST, BARREL]）
 
-# 遗迹保护：探索/激活中不可破坏放置，通关后解锁
+# 遗迹保护：探索/激活中不可破坏放置；通关后按 after-clear 处理
 protection:
-  enabled: true   # 锁定条件：秘境激活中、或有击杀目标且未完成。管理员(qinhruins.admin)和"挖穿"机关触发块不受限
+  enabled: true   # 锁定条件：秘境激活中、或有击杀目标/BOSS且未完成。管理员(qinhruins.admin)和"挖穿"机关触发块不受限
+  chests: true                 # 战利品箱（QR 注册的箱子）无论是否通关都不可破坏
+  chest-message: true          # 破坏战利品箱时提示
+  after-clear: restore         # 通关后：deny=依旧不可破坏 | restore=可以破坏但会自动恢复(方便跑路) | allow=可以破坏且不恢复
+  restore-delay-ticks: 100     # restore 模式的恢复延迟（20 tick = 1 秒）
+  no-drop: true                # 被保护的结构方块破坏时取消掉落与经验（防止刷建材）
+  ore-tags:                    # 允许挖掘、正常掉落、不恢复（通关前后都生效）
+    - "#minecraft:ores"
+    - "#minecraft:beacon_base_blocks"
+  ore-blocks:                  # 额外允许的方块（粗矿块）
+    - "minecraft:raw_iron_block"
+    - "minecraft:raw_copper_block"
+    - "minecraft:raw_gold_block"
 
 # 移除/清理
 cleanup:
@@ -191,3 +203,46 @@ content:
 
 # 玩家可见消息已迁移到 lang/<语言>/messages.yml（见顶部 language 配置项）。
 # 想改这些文案：编辑 lang/zh_cn/messages.yml 或 lang/en_US/messages.yml。
+
+# ============ 每周开箱限额 ============
+weekly-limit:
+  enabled: true
+  count-vanilla: false        # 原版结构箱子先不统计
+  reset-day: MONDAY
+  reset-hour: 4
+
+  # 各作用域：默认额度 + 权限加成 + 临时（节假日）加成 + 归属战利品表
+  scopes:
+    ruin:
+      per-week: 16
+      tables: []              # 留空 = 未列出的表都算遗迹箱
+      permission-bonus:
+        "qinhruins.limit.ruin.vip": 4
+        "qinhruins.limit.ruin.mvp": 8
+      temporary-bonus:
+        - start: "2026-12-24"
+          end: "2026-12-26"
+          amount: 5
+          reason: "圣诞活动"
+    boss:
+      per-week: 3
+      tables: [boss, boss_reward, boss_vault]
+      permission-bonus:
+        "qinhruins.limit.boss.vip": 2
+    slot:
+      per-week: 3
+      tables: []
+      permission-bonus:
+        "qinhruins.limit.slot.vip": 2
+    vanilla:
+      per-week: 5
+
+  over-limit:
+    mode: chest               # chest=开补偿箱 | reward=给物品 | deny=只提示
+    table: compensation       # 补偿战利品表（loottables/compensation.yml）
+    title: "&6本周次数已用完 · 安慰奖"
+    rows: 3
+    once-per-chest: true
+    message: "&e本周次数已用完，这是安慰奖"
+    commands: []
+    items: []

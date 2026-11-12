@@ -23,6 +23,7 @@ core:
   title-enter-new: "&6⚔ You entered {ruin}"
   title-enter-explored: "&7Too bad, a step too late — only chests left to rummage"
   protect-no-break: "§cYou cannot break blocks before clearing the ruin"
+  protect-chest: "§cLoot chests cannot be destroyed"
   stage-staged: "§aPreview staged §6{ruin}§a, use §e/qr stage move/rotate §ato adjust, §e/qr stage confirm §ato place"
   stage-pos: "§7Position §f{x},{y},{z}"
   stage-pos-crosshair: "§7Position moved to crosshair §f{x},{y},{z}"

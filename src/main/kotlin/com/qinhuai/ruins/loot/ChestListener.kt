@@ -40,6 +40,12 @@ object ChestListener : Listener {
             return
         }
 
+        val scope = WeeklyLimitService.scopeOfTable(chest.lootTable)
+        if (!WeeklyLimitService.tryConsume(player, scope)) {
+            WeeklyLimitService.deny(player, scope, "chest|${ref.anchorId}|${chest.id}")
+            return
+        }
+
         val table = LootTableRegistry.get(chest.lootTable)
         if (table == null) {
             TextUtil.sendColored(player, Lang.get("realm.chest-table-missing", "table" to chest.lootTable))

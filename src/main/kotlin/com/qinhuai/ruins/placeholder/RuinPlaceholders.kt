@@ -21,6 +21,7 @@ object RuinPlaceholders : QinhPlaceholderProvider {
         if (params.startsWith("realm_", true)) return realmValue(online, params)
         if (params.startsWith("guide_", true)) return guideValue(online, params)
         if (params.startsWith("boss_", true)) return bossValue(online, params)
+        if (params.startsWith("weekly", true)) return com.qinhuai.ruins.loot.WeeklyLimitService.placeholder(online, params)
 
         val progress = ObjectiveTracker.nearestProgress(online.location)
             ?: return if (params.equals("stage", true) || params.startsWith("kills_", true)) "0" else ""

@@ -1,0 +1,8 @@
+# 超额补偿箱（weekly-limit.over-limit.table 指向这里）
+# 本周开箱次数用完后，右键箱子会打开这个表的内容（同一个箱子每周只补一次）
+rolls: 1
+entries:
+  - { item: "vanilla:EMERALD", weight: 30, amount: "1-2" }
+  - { item: "vanilla:GOLD_INGOT", weight: 30, amount: "2-4" }
+  - { item: "vanilla:EXPERIENCE_BOTTLE", weight: 25, amount: "2-4" }
+  - { item: "vanilla:BREAD", weight: 15, amount: "3-6" }

@@ -1,5 +1,6 @@
 package com.qinhuai.ruins.template
 
+import com.qinhuai.ruins.core.FitRule
 import com.qinhuai.ruins.core.GenerationRule
 import com.qinhuai.ruins.core.SpawnRegion
 import org.bukkit.World
@@ -36,6 +37,7 @@ object GenerationProfiles {
         spawnInLava = false,
         spawnInVoid = true,
         spawnRegion = null,
+        fit = null,
     )
 
     private val profiles = LinkedHashMap<String, GenerationRule>()
@@ -93,6 +95,19 @@ object GenerationProfiles {
             spawnInLava = if (section.contains("spawn-in-lava")) section.getBoolean("spawn-in-lava") else base.spawnInLava,
             spawnInVoid = if (section.contains("spawn-in-void")) section.getBoolean("spawn-in-void") else base.spawnInVoid,
             spawnRegion = readRegion(section) ?: base.spawnRegion,
+            fit = readFit(section) ?: base.fit,
+        )
+    }
+
+    private fun readFit(section: ConfigurationSection): FitRule? {
+        val s = section.getConfigurationSection("fit") ?: return null
+        return FitRule(
+            mode = (s.getString("mode") ?: "shell").trim().lowercase(),
+            minScore = s.getDouble("min-score", 0.0).coerceIn(0.0, 1.0),
+            scanRadius = s.getInt("scan-radius", 16).coerceIn(2, 48),
+            requireBlocks = s.getStringList("require-blocks"),
+            minBlockCount = s.getInt("min-block-count", 1).coerceAtLeast(1),
+            forbidBlocks = s.getStringList("forbid-blocks"),
         )
     }
 

@@ -23,6 +23,7 @@ core:
   title-enter-new: "&6⚔ 你进入了 {ruin}"
   title-enter-explored: "&7可惜，来晚一步，只能翻翻箱子了"
   protect-no-break: "§c遗迹通关前不可破坏"
+  protect-chest: "§c战利品箱无法被摧毁"
   stage-staged: "§a已暂存预览 §6{ruin}§a，用 §e/qr stage move/rotate §a调整，§e/qr stage confirm §a放置"
   stage-pos: "§7位置 §f{x},{y},{z}"
   stage-pos-crosshair: "§7位置移到准星 §f{x},{y},{z}"
