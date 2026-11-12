@@ -77,7 +77,7 @@ object TemplateRegistry {
         val foundation = parseFoundation(yml)
         return RuinTemplate(
             id = id,
-            display = yml.getString("display") ?: id,
+            display = (yml.getString("display") ?: id).replace('&', '§'),
             icon = yml.getString("icon") ?: "FILLED_MAP",
             structureFile = yml.getString("structure.file") ?: "structure.nbt",
             rotationMode = yml.getString("structure.rotation") ?: "none",
