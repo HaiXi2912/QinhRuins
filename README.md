@@ -91,23 +91,23 @@ weekly-limit:
 - 原版结构箱子通过 `lootTable != null` 判定，玩家自己放的箱子不计入；`count-vanilla: false` 默认关闭。
 - 占位符（需 PAPI）：`%qinhruins_weekly_used%`、`%qinhruins_weekly_limit%`、`%qinhruins_weekly_remaining%`、`%qinhruins_weekly_reset%`，以及 `boss_`、`slot_`、`vanilla_` 前缀变体。
 
-### 4. 遗迹保护系统重做
+### 4. 遗迹保护重做（10 秒恢复）
 
-| 方块 | 通关前 | 通关后 |
-|---|---|---|
-| 战利品箱 | 不可破坏，提示 | 不可破坏 |
-| 矿物 / 矿物块 / 粗矿块 | 可挖、正常掉落、不恢复 | 同左 |
-| 其他结构方块 | 不可破坏 | 按 `after-clear` |
-| 放置方块 | 禁止 | 允许 |
-| 爆炸 | 遗迹内非矿物方块不被破坏 | 同左 |
+| 方块 | 行为 |
+|---|---|
+| 战利品箱 | 无论是否通关都不可破坏，破坏时提示 |
+| 矿物 / 矿物块 / 粗矿块 | 可挖、正常掉落、**不恢复** |
+| 其他结构方块 | 可挖、**不掉落**、10 秒后自动恢复 |
+| 玩家放置的方块 | 允许放、**10 秒后自动消失**（垫脚用） |
+| 爆炸 | 遗迹内非矿物方块不被破坏 |
 
 ```yaml
 protection:
   enabled: true
   chests: true
   chest-message: true
-  after-clear: restore        # deny | restore | allow
-  restore-delay-ticks: 100
+  restore-delay-ticks: 200     # 结构方块被挖后多久恢复（20 tick = 1 秒）
+  place-restore-ticks: 200     # 玩家放置的方块多久后消失
   no-drop: true
   ore-tags:
     - "#minecraft:ores"
@@ -119,15 +119,15 @@ protection:
 ```
 
 - 文件：`combat/RuinProtectionListener.kt`
-- `restore` 模式只在该位置仍为空气时恢复，不覆盖玩家新放的方块。
+- 恢复只在该位置仍为空气时执行，不覆盖玩家新放的方块；放置的方块只在仍是原方块时移除。
 - 管理员权限 `qinhruins.admin` 不受保护限制。
 
 ### 5. 生成播报可点击传送
 
-生成播报中的遗迹名可点击，直接执行 `/qr tp <id>`；悬停显示传送目标。
+生成播报精简为“遗迹已生成”，不显示坐标；整条消息可点击，直接执行 `/qr tp <id>`，悬停显示传送目标。
 
 - 文件：`generation/GenerationDirector.kt`
-- 语言键：`cmd.gen-announce-tp`、`cmd.gen-announce-tp-hover`（`lang/zh_cn`、`lang/en_US`）
+- 语言键：`cmd.gen-announce`、`cmd.gen-announce-tp-hover`
 
 ---
 

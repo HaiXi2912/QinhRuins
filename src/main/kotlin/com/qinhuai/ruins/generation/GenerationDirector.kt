@@ -216,21 +216,14 @@ object GenerationDirector {
         val loc = anchor.location
         logger?.info("自然生成 ${template.id} @ ${loc.world?.name} ${loc.blockX},${loc.blockY},${loc.blockZ} (${anchor.id})")
         if (!notifyAdmins || suppressAnnounce) return
-        val msg = Lang.get(
-            "cmd.gen-announce",
-            "name" to template.display,
-            "world" to (loc.world?.name ?: ""),
-            "x" to loc.blockX, "y" to loc.blockY, "z" to loc.blockZ,
-            "id" to anchor.id,
+        val legacy = LegacyComponentSerializer.legacySection()
+        val component = legacy.deserialize(
+            Lang.get("cmd.gen-announce", "name" to template.display)
         )
+            .clickEvent(ClickEvent.runCommand("/qr tp ${anchor.id}"))
+            .hoverEvent(HoverEvent.showText(legacy.deserialize(Lang.get("cmd.gen-announce-tp-hover", "id" to anchor.id))))
         for (player in Bukkit.getOnlinePlayers()) {
-            if (player.hasPermission("qinhruins.admin")) {
-                val legacy = LegacyComponentSerializer.legacySection()
-                val tp = legacy.deserialize(Lang.get("cmd.gen-announce-tp"))
-                    .clickEvent(ClickEvent.runCommand("/qr tp ${anchor.id}"))
-                    .hoverEvent(HoverEvent.showText(legacy.deserialize(Lang.get("cmd.gen-announce-tp-hover", "id" to anchor.id))))
-                player.sendMessage(legacy.deserialize(msg).append(tp))
-            }
+            if (player.hasPermission("qinhruins.admin")) player.sendMessage(component)
         }
     }
 

@@ -120,12 +120,12 @@ vessel:
 
 # 遗迹保护：探索/激活中不可破坏放置；通关后按 after-clear 处理
 protection:
-  enabled: true   # 锁定条件：秘境激活中、或有击杀目标/BOSS且未完成。管理员(qinhruins.admin)和"挖穿"机关触发块不受限
+  enabled: true                # 管理员(qinhruins.admin)不受限
   chests: true                 # 战利品箱（QR 注册的箱子）无论是否通关都不可破坏
   chest-message: true          # 破坏战利品箱时提示
-  after-clear: restore         # 通关后：deny=依旧不可破坏 | restore=可以破坏但会自动恢复(方便跑路) | allow=可以破坏且不恢复
-  restore-delay-ticks: 100     # restore 模式的恢复延迟（20 tick = 1 秒）
-  no-drop: true                # 被保护的结构方块破坏时取消掉落与经验（防止刷建材）
+  restore-delay-ticks: 200     # 结构方块被挖后多久恢复（20 tick = 1 秒，200 = 10 秒）
+  place-restore-ticks: 200     # 玩家放置的方块多久后消失（垫脚用，200 = 10 秒）
+  no-drop: true                # 结构方块破坏时取消掉落与经验（防止刷建材）
   ore-tags:                    # 允许挖掘、正常掉落、不恢复（通关前后都生效）
     - "#minecraft:ores"
     - "#minecraft:beacon_base_blocks"
