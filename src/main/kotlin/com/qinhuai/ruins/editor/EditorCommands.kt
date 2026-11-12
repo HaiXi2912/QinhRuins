@@ -6,6 +6,7 @@ import com.qinhuai.ruins.lang.Lang
 import com.qinhuai.ruins.generation.AnchorManager
 import com.qinhuai.ruins.loot.ChestRegistry
 import com.qinhuai.ruins.mechanism.MechanismService
+import com.qinhuai.ruins.structure.StructurePatch
 import com.qinhuai.ruins.template.BlueprintRegistry
 import com.qinhuai.ruins.template.TemplateRegistry
 import org.bukkit.entity.Player
@@ -115,6 +116,11 @@ object EditorCommands {
         val plugin = QinhRuins.instance
         val file = File(plugin.dataFolder, "templates/${session.templateId}/blueprint.yml")
         BlueprintWriter.write(file, session)
+        // 编辑器里手动放置/挖掉的方块，增量写回 structure.nbt（不整块重 capture，保留 barrier 占位和其它未改动方块）
+        val structureFile = TemplateRegistry.get(session.templateId)?.structureFile ?: "structure.nbt"
+        val patched = StructurePatch.apply(
+            File(plugin.dataFolder, "templates/${session.templateId}/$structureFile"), session.edits)
+        if (patched > 0) Lang.send(player, "editor.structure-patched", "n" to patched)
         BlueprintRegistry.load(File(plugin.dataFolder, "templates"))
         ChestRegistry.rebuild(AnchorManager.all())
         MechanismService.rebuild(AnchorManager.all())

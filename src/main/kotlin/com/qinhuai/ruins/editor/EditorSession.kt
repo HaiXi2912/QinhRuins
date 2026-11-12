@@ -25,6 +25,9 @@ class EditorSession(
 ) {
     var mechBuilder: MechBuilder? = null
 
+    /** 编辑期间玩家手动放置/挖掘的方块（相对坐标 → 新方块数据，null 表示挖掉），保存时增量写入 structure.nbt。 */
+    val edits: LinkedHashMap<RelPos, org.bukkit.block.data.BlockData?> = LinkedHashMap()
+
     var screen: EditorScreen = EditorScreen.HOME
     var mode: EditorMode = EditorMode.SPAWN
     var defaultMob: String = "ZOMBIE"

@@ -12,6 +12,8 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
+import org.bukkit.event.block.BlockBreakEvent
+import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.inventory.EquipmentSlot
@@ -24,6 +26,30 @@ object EditorListener : Listener {
     @EventHandler
     fun onQuit(event: PlayerQuitEvent) {
         if (EditorManager.get(event.player) != null) EditorManager.end(event.player)
+    }
+
+    /** 只记录玩家手动放置的方块，流体/重力/爆炸等环境变化不算。 */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    fun onPlace(event: BlockPlaceEvent) {
+        val session = EditorManager.get(event.player) ?: return
+        recordBlock(session, event.block, event.block.blockData)
+    }
+
+    /** 只记录玩家手动挖掉的方块。 */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    fun onBreak(event: BlockBreakEvent) {
+        val session = EditorManager.get(event.player) ?: return
+        recordBlock(session, event.block, null)
+    }
+
+    private fun recordBlock(session: EditorSession, block: Block, data: org.bukkit.block.data.BlockData?) {
+        val anchor = AnchorManager.get(session.anchorId) ?: return
+        if (block.world != anchor.location.world) return
+        session.edits[RelPos(
+            block.x - anchor.location.blockX,
+            block.y - anchor.location.blockY,
+            block.z - anchor.location.blockZ,
+        )] = data
     }
 
     @EventHandler

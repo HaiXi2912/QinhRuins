@@ -27,6 +27,7 @@ editor:
   marker-not-found: "§cMarker not found: §6{id}"
   auto-finish-mech: "§a(Auto-finalized the unfinished mech §6{id}§a on save)"
   saved: "§aSaved blueprint §6{id} §7(spawns{spawns}/chests{chests}/mechs{mechs})"
+  structure-patched: "§7Wrote §6{n} §7manually placed/broken blocks back into the structure file"
   cancelled: "§eEditing cancelled (not saved)"
   not-editing: "§cYou are not editing, first §6/qr editor start <template>"
   invalid-number: "§cPlease enter a valid number"

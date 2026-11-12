@@ -27,6 +27,7 @@ editor:
   marker-not-found: "§c未找到标记: §6{id}"
   auto-finish-mech: "§a（保存时自动收尾未完成的机关 §6{id}§a）"
   saved: "§a已保存蓝图 §6{id} §7(刷怪点{spawns}/宝箱{chests}/机关{mechs})"
+  structure-patched: "§7已把手动放置/挖掉的 §6{n} §7个方块写回结构文件"
   cancelled: "§e已取消编辑（未保存）"
   not-editing: "§c你不在编辑中，先 §6/qr editor start <模板>"
   invalid-number: "§c请输入有效数字"
