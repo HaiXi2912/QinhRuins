@@ -14,6 +14,9 @@ import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
 import org.bukkit.scheduler.BukkitTask
+import net.kyori.adventure.text.event.ClickEvent
+import net.kyori.adventure.text.event.HoverEvent
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import java.util.Random
 
 object GenerationDirector {
@@ -221,7 +224,13 @@ object GenerationDirector {
             "id" to anchor.id,
         )
         for (player in Bukkit.getOnlinePlayers()) {
-            if (player.hasPermission("qinhruins.admin")) player.sendMessage(msg)
+            if (player.hasPermission("qinhruins.admin")) {
+                val legacy = LegacyComponentSerializer.legacySection()
+                val tp = legacy.deserialize(Lang.get("cmd.gen-announce-tp"))
+                    .clickEvent(ClickEvent.runCommand("/qr tp ${anchor.id}"))
+                    .hoverEvent(HoverEvent.showText(legacy.deserialize(Lang.get("cmd.gen-announce-tp-hover", "id" to anchor.id))))
+                player.sendMessage(legacy.deserialize(msg).append(tp))
+            }
         }
     }
 
